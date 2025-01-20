@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Remote Control</title>
+</head>
+<body>
+    <h1>PC Remote Control</h1>
+    <button onclick="sendCommand('play_pause')">⏯ Play/Pause</button>
+    <button onclick="sendCommand('next')">⏭ Next</button>
+    <button onclick="sendCommand('previous')">⏮ Previous</button>
+    <br><br>
+    <label for="volume">Volume:</label>
+    <input type="range" id="volume" min="0" max="100" oninput="changeVolume(this.value)">
+    <script>
+        let serverUrl;
+
+        // 서버 IP 주소를 자동으로 가져오기
+        fetch('http://192.168.0.9:5000/get_ip')  // 서버 IP 주소
+            .then(response => response.json())
+            .then(data => {
+                serverUrl = `http://${data.ip}:5000/control`;
+                console.log("Server URL:", serverUrl);
+            })
+            .catch(err => {
+                console.error("Failed to get server IP:", err);
+            });
+
+        function sendCommand(command, value = 0) {
+            if (!serverUrl) {
+                console.error("Server URL is not set.");
+                return;
+            }
+
+            console.log(`Sending command: ${command} with value: ${value}`);
+            
+            fetch(serverUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ command, value }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Response from server:", data);
+            })
+            .catch(err => {
+                console.error('Error:', err);
+            });
+        }
+
+        function changeVolume(value) {
+            sendCommand('volume', value);
+        }
+    </script>
+</body>
+</html>
